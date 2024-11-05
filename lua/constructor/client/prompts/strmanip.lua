@@ -14,4 +14,11 @@ function M.extract_fstring_vars(fstring)
     return vars
 end
 
+function M.substitute_fstring_var(fstring, variable, value)
+    local pattern = string.format("{%s}", variable)
+    local result = fstring:gsub(pattern, value)
+
+    return result
+end
+
 return M

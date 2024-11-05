@@ -4,6 +4,8 @@ local GroqClient = require('constructor.client.backends.groq')
 local ClientSession = require('constructor.client.client')
 local utils = require('constructor.client.utils')
 
+local tblutils = require('constructor.tblutils')
+
 local function insert_lines(text, row)
 
     -- Get all lines from cursor position to end
@@ -17,6 +19,50 @@ local function insert_lines(text, row)
     -- Append the previous lines after the inserted text
     vim.api.nvim_buf_set_lines(0, row + #text, row + #text, false, lines_after)
 end
+
+--- Returns the selected text in the current buffer.
+--- 
+--- This function retrieves the text that is currently selected in the buffer,
+--- either as a single line or a range of lines, and returns it as a table of strings.
+--- 
+--- @return string[] lines A table of strings representing the selected text.
+local function get_selection()
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, false, true), 'x', true)
+
+    local _, start_row, start_col, _ = unpack(vim.fn.getpos("'<"))
+    local _, end_row, end_col, _ = unpack(vim.fn.getpos("'>"))
+
+    --- Calculates the length of a line in the buffer.
+    --- 
+    --- This function takes into account the `vim.v.maxcol` value to determine the
+    --- actual column length of the line.
+    --- 
+    --- @param n number The line number (1-indexed).
+    --- @return number The length of the line in columns.
+    local function nth_line_len(n)
+        local line = vim.api.nvim_buf_get_lines(0, n-1, n, true)
+        local linelen = #line
+        local linecol = vim.v.maxcol == end_col and linelen or end_col
+        return linecol
+    end
+
+    local fcol = nth_line_len(start_row)
+    local lcol = nth_line_len(end_row)
+
+    local lines
+
+    if start_row == end_row then
+        lines = vim.api.nvim_buf_get_text(0, start_row-1, start_col-1, start_row-1, fcol, {})
+    else
+        lines = tblutils.join_lists{
+            vim.api.nvim_buf_get_text(0, start_row-1, start_col-1, start_row-1, -1, {}),
+            vim.api.nvim_buf_get_text(0, start_row, 0, end_row-1, lcol, {})
+        }
+    end
+
+    return lines
+end
+
 
 --#TODO fix this function to a more clever solution
 function M.replace_visual_selection(text)
@@ -61,8 +107,7 @@ function M.replace_visual_selection(text)
 end
 
 function M.generate_and_replace()
-    vim.cmd.normal{'y', bang = true}
-    local selected_text = vim.fn.getreg('0')
+    local selected_text = table.concat(get_selection(), '\n')
 
     local client = ClientSession:new(GroqClient.new(os.getenv('GROQ_API_KEY')))
     local code = client:generate_code({
