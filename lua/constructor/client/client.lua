@@ -38,7 +38,6 @@ function ClientSession:new_history(new_messages)
     return history
 end
 
-
 --- @param messages Message[]
 --- @param opts table|nil
 --- @return Message

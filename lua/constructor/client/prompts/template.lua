@@ -10,6 +10,7 @@ PromptTemplate.__index = PromptTemplate
 
 local strmanip = require('constructor.client.prompts.strmanip')
 local default_hooks = require('constructor.client.prompts.hooks.init')
+local Message = require('constructor.client.messages')
 
 
 ---@param tbl table<string,any> table should be on the next format:
@@ -50,7 +51,7 @@ function PromptTemplate:new(tbl)
     return instance
 end
 
----@param on_done fun(result: string)
+---@param on_done fun(result: Message)
 ---@param hooks table<string, fun(cb:function, opts: table|nil)> | nil
 function PromptTemplate:subs(on_done, hooks)
     hooks = hooks or {}
@@ -60,7 +61,10 @@ function PromptTemplate:subs(on_done, hooks)
     local semaphore = #required_vars
 
     local function on_done_cb()
-        on_done(result)
+        on_done(Message:new{
+            content = result,
+            role = 'user',
+        })
     end
 
     local function callback(variable, value)
