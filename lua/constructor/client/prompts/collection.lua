@@ -1,7 +1,6 @@
+---@type table<string, PromptTemplate>
 local M = {}
-
 local PromptTemplate = require('constructor.client.prompts.template')
-local Hooks = require('constructor.client.prompts.hooks.init')
 
 M.write_tests = PromptTemplate:new{
     name = 'Write tests',
@@ -19,8 +18,13 @@ M.write_tests = PromptTemplate:new{
     hook_wrappers = {
        input = function (cb)
             return function (variable, value)
-                local text = "- Performance scenarios for %s (e.g., handling large datasets, high-frequency calls)"
-                return cb(variable, text:format(value))
+                if type(value) == 'string' and #value > 0 then
+                    local text = "- Performance scenarios for %s (e.g., handling large datasets, high-frequency calls)"
+                    return cb(variable, text:format(value))
+                else
+                    return cb(variable, '')
+                end
+
             end
        end
     }
@@ -37,7 +41,7 @@ M.generate_docstring = PromptTemplate:new{
         - Try to explain the main functionality of the function, not tying to the underlying logic
         - Try to infer the types as maximum as you can.
 
-        Code: %s]]
+        Code:]]
 }
 
 return M

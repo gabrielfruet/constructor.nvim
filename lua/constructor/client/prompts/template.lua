@@ -38,8 +38,14 @@ function PromptTemplate:new(tbl)
     instance.name = tbl.name or ''
     instance.description = tbl.description or ''
     instance.hook_wrappers = tbl.hook_wrappers or {}
-
     instance.hook_wrappers._noop = function(cb) return cb end
+
+    --#TODO error prone
+    setmetatable(instance.hook_wrappers, {
+        __index = function(_, _)
+            return instance.hook_wrappers._noop
+        end
+    })
 
     return instance
 end
@@ -67,12 +73,18 @@ function PromptTemplate:subs(on_done, hooks)
     end
 
     for _, var in pairs(required_vars) do
+        local wrapper = self.hook_wrappers[var]
+
+        local cb = wrapper(callback)
+
         if default_hooks[var] then
-            default_hooks[var](callback)
+            default_hooks[var](cb)
         elseif hooks[var] then
-            hooks[var](callback)
+            hooks[var](cb)
         else
             semaphore = semaphore - 1
         end
     end
 end
+
+return PromptTemplate
