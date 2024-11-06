@@ -2,13 +2,13 @@
 local M = {}
 local PromptTemplate = require('constructor.client.prompts.template')
 
-local function on_non_nil(formatstr)
+local function on_non_empty(formatstr)
     return function (cb)
-        return function (variable, value)
+        return function (value)
             if type(value) == 'string' and #value > 0 then
-                return cb(variable, formatstr:format(value))
+                return cb(formatstr:format(value))
             else
-                return cb(variable, '')
+                return cb(value)
             end
         end
     end
@@ -28,7 +28,7 @@ M.write_tests = PromptTemplate.new{
 
         Provide clear test names and use assertions to validate the expected outcomes.]],
     hook_wrappers = {
-       input = on_non_nil("- Performance scenarios for %s (e.g., handling large datasets, high-frequency calls)")
+       input = on_non_empty("- Performance scenarios for %s (e.g., handling large datasets, high-frequency calls)")
     }
 }
 
@@ -56,8 +56,8 @@ M.write_function_based_on_context = PromptTemplate.new{
         {input}
         ]],
     hook_wrappers = {
-        context = on_non_nil("Context: \n %s"),
-        input = on_non_nil("Demand: \n %s")
+        context = on_non_empty("Context: \n %s"),
+        input = on_non_empty("Demand: \n %s")
     }
 }
 

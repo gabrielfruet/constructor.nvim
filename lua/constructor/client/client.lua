@@ -24,7 +24,7 @@ function ClientSession.new(llmclient)
 
     instance.hooks = {
         context = function (cb, opts)
-            cb('context', Message.concat(instance.context).content)
+            cb(Message.concat(instance.context).content)
         end
     }
 
@@ -61,9 +61,12 @@ function ClientSession:new_history(new_messages)
 end
 
 ---@param prompt PromptTemplate
-function ClientSession:run_prompt(prompt)
+---@param on_done fun(result: Message)
+---@async
+function ClientSession:run_prompt(prompt, on_done)
     prompt:subs(function(result)
-        ClientSession:generate_code(result)
+        local message = ClientSession:generate_code(result)
+        on_done(message)
     end, self.hooks)
 end
 

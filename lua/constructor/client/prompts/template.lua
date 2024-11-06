@@ -66,19 +66,26 @@ function PromptTemplate:subs(on_done, hooks)
         })
     end
 
-    local function callback(variable, value)
-        result = strmanip.substitute_fstring_var(result, variable, value)
+    ---@param variable string
+    ---@return HookCallback
+    local function callback_on_variable(variable)
+        ---@param value string | nil if the value is nil, it will be considered an error
+        return function (value)
+            if value ~= nil then
+                result = strmanip.substitute_fstring_var(result, variable, value)
 
-        semaphore = semaphore - 1
-        if semaphore == 0 then
-            on_done_cb()
+                semaphore = semaphore - 1
+                if semaphore == 0 then
+                    on_done_cb()
+                end
+            end
         end
     end
 
     for _, var in pairs(required_vars) do
         local wrapper = self.hook_wrappers[var]
 
-        local cb = wrapper(callback)
+        local cb = wrapper(callback_on_variable(var))
 
         if default_hooks[var] then
             default_hooks[var](cb)

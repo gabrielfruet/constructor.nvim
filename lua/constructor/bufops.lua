@@ -23,6 +23,7 @@ function M.insert_lines(text, row)
     vim.api.nvim_buf_set_lines(0, row + #text, row + #text, false, lines_after)
 end
 
+---@param text string
 function M.insert_at_cursor(text)
     local _, row, _ , _ = unpack(vim.fn.getpos("."))
     M.insert_lines(text, row)

@@ -12,6 +12,13 @@ function Message.concat(msg_list, opts)
     opts = opts or {}
     opts.sep = opts.sep or '\n'
 
+    if #msg_list == 0 then
+        return Message.new{
+            content='',
+            role='user'
+        }
+    end
+
     local resulting_msg = msg_list[1]
     table.remove(msg_list, 1)
     for _, msg in ipairs(msg_list) do

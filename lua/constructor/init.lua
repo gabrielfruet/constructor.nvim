@@ -23,10 +23,10 @@ function M.setup(opts)
             format_item = function (item)
                 return item.name
             end
-        }, function (item, idx)
-            --- #TODO run_prompt is async
-            local code = client:run_prompt(item)
-            bufops.insert_at_cursor(code)
+        }, function (prompt, idx)
+            client:run_prompt(prompt, function (msg)
+                bufops.insert_at_cursor(msg.content)
+            end)
         end)
     end
 
@@ -35,9 +35,7 @@ function M.setup(opts)
         client:add_context(selected)
     end, {})
 
-    vim.api.nvim_create_user_command('ClientGenerate', function ()
-        select_prompt()
-    end, {})
+    vim.api.nvim_create_user_command('ClientGenerate', select_prompt, {})
 
     vim.api.nvim_create_user_command('ClientGetContext', function ()
         vim.print(client.context)
