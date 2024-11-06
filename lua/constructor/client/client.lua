@@ -44,6 +44,10 @@ function ClientSession:add_context(msg)
     table.insert(self.context, msg)
 end
 
+function ClientSession:clear_context()
+    self.context = {}
+end
+
 --- Creates a new message history by merging the existing messages and the new messages.
 --- 
 --- @param new_messages table of table containing message data
