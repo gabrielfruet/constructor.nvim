@@ -6,7 +6,10 @@ local utils = require('constructor.client.utils')
 
 local tblutils = require('constructor.tblutils')
 
-local function insert_lines(text, row)
+function M.insert_lines(text, row)
+    if type(text) == 'string' then
+        text = vim.split(text, '\n')
+    end
 
     -- Get all lines from cursor position to end
     local end_line = vim.api.nvim_buf_line_count(0)
@@ -20,13 +23,18 @@ local function insert_lines(text, row)
     vim.api.nvim_buf_set_lines(0, row + #text, row + #text, false, lines_after)
 end
 
+function M.insert_at_cursor(text)
+    local _, row, _ , _ = unpack(vim.fn.getpos("."))
+    M.insert_lines(text, row)
+end
+
 --- Returns the selected text in the current buffer.
 --- 
 --- This function retrieves the text that is currently selected in the buffer,
 --- either as a single line or a range of lines, and returns it as a table of strings.
 --- 
 --- @return string[] lines A table of strings representing the selected text.
-local function get_selection()
+function M.get_selection()
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<esc>", true, false, true), 'x', true)
 
     local _, start_row, start_col, _ = unpack(vim.fn.getpos("'<"))
@@ -101,15 +109,15 @@ function M.replace_visual_selection(text)
         vim.api.nvim_buf_set_text(0, start_row-1, start_col-1, start_row-1, -1, {lines[1]})
         table.remove(lines, 1)
         --vim.api.nvim_buf_set_lines(0, start_row, end_row-1, false, lines)
-        insert_lines(lines, start_row)
+        M.insert_lines(lines, start_row)
         --vim.api.nvim_buf_set_text(0, start_row, 0, end_row-1, -1, lines)
     end
 end
 
 function M.generate_and_replace()
-    local selected_text = table.concat(get_selection(), '\n')
+    local selected_text = table.concat(M.get_selection(), '\n')
 
-    local client = ClientSession:new(GroqClient.new(os.getenv('GROQ_API_KEY')))
+    local client = ClientSession.new(GroqClient.new(os.getenv('GROQ_API_KEY')))
     local code = client:generate_code({
         {
             content = string.format([[

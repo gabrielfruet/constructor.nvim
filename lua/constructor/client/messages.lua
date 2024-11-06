@@ -21,7 +21,7 @@ function Message.concat(msg_list, opts)
     return resulting_msg
 end
 
-function Message:new(tbl)
+function Message.new(tbl)
     if tbl == nil then
         error("llmclient is required")
     end
@@ -40,7 +40,7 @@ function Message:extract_code_blocks()
     local code_msg_list = {}
 
     for _, code in pairs(codeblocks) do
-        table.insert(code_msg_list, Message:new({
+        table.insert(code_msg_list, Message.new({
             content = code,
             role = self.role
         }))
@@ -51,21 +51,21 @@ end
 
 Message.__concat = function(left, right)
     if getmetatable(left) == Message and getmetatable(right) == Message then
-        return Message:new({
+        return Message.new({
             role = left.role,
             content = left.content .. right.content
         })
     end
 
     if getmetatable(left) == Message and type(right) == "string" then
-        return Message:new({
+        return Message.new({
             role = left.role,
             content = left.content .. right
         })
     end
 
     if type(left) == "string" and getmetatable(right) == Message then
-        return Message:new({
+        return Message.new({
             role = right.role,
             content = left .. right.content
         })
@@ -73,5 +73,7 @@ Message.__concat = function(left, right)
 
     error("Invalid concatenation operation")
 end
+
+
 
 return Message

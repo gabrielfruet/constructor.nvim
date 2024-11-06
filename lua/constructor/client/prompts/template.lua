@@ -1,4 +1,3 @@
----@alias HookWrapper fun(cb: function): HookCallback
 
 --- @class PromptTemplate
 --- @field template string
@@ -23,8 +22,7 @@ local Message = require('constructor.client.messages')
 ---             hook_wrapper: table<string, HookWrapper> | nil
 ---                 Wrappers around predefined hooks
 ---@return PromptTemplate instance
----
-function PromptTemplate:new(tbl)
+function PromptTemplate.new(tbl)
     if tbl.template == nil then
         error('Template is required')
     end
@@ -51,6 +49,7 @@ function PromptTemplate:new(tbl)
     return instance
 end
 
+---@async
 ---@param on_done fun(result: Message)
 ---@param hooks table<string, fun(cb:function, opts: table|nil)> | nil
 function PromptTemplate:subs(on_done, hooks)
@@ -61,7 +60,7 @@ function PromptTemplate:subs(on_done, hooks)
     local semaphore = #required_vars
 
     local function on_done_cb()
-        on_done(Message:new{
+        on_done(Message.new{
             content = result,
             role = 'user',
         })

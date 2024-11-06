@@ -121,7 +121,7 @@ function GroqClient:create_chat_completion(messages, options)
         error('error when calling chat')
     end
 
-    return Message:new({
+    return Message.new({
         content=response.choices[1].message.content,
         role=response.choices[1].message.role,
     })

@@ -2,11 +2,46 @@ local M = {
     clients={}
 }
 
-require('constructor.bufops')
+local bufops = require('constructor.bufops')
 
-M.clients.groq = require('constructor.client.backends.groq')
+local ClientSession = require('constructor.client.client')
+local Groq = require('constructor.client.backends.groq')
+
+local PromptCollection = require('constructor.client.prompts.collection')
+
 
 function M.setup(opts)
+    local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')))
+
+    local function select_prompt()
+        local items = {}
+        for _, v in pairs(PromptCollection) do
+            table.insert(items, v)
+        end
+
+        vim.ui.select(items, {
+            format_item = function (item)
+                return item.name
+            end
+        }, function (item, idx)
+            --- #TODO run_prompt is async
+            local code = client:run_prompt(item)
+            bufops.insert_at_cursor(code)
+        end)
+    end
+
+    vim.api.nvim_create_user_command('ClientSendContext', function ()
+        local selected = table.concat(bufops.get_selection(), '\n')
+        client:add_context(selected)
+    end, {})
+
+    vim.api.nvim_create_user_command('ClientGenerate', function ()
+        select_prompt()
+    end, {})
+
+    vim.api.nvim_create_user_command('ClientGetContext', function ()
+        vim.print(client.context)
+    end, {})
 end
 
 return M

@@ -3,6 +3,8 @@ local Message = require('constructor.client.messages')
 --- @class ClientSession
 --- @field messages Message[]
 --- @field llmclient LLMClient
+--- @field context string[]
+--- @field hooks table<string, Hook>
 local ClientSession = {}
 ClientSession.__index = ClientSession
 
@@ -10,7 +12,7 @@ ClientSession.__index = ClientSession
 --- @param llmclient LLMClient: The LLM client to associate with this session.
 --- @return ClientSession: A new ClientSession instance.
 --- @error If llmclient is nil.
-function ClientSession:new(llmclient)
+function ClientSession.new(llmclient)
     if llmclient == nil then
         error("llmclient is required")
     end
@@ -18,8 +20,28 @@ function ClientSession:new(llmclient)
 
     instance.llmclient = llmclient
     instance.messages = {}
+    instance.context = {}
+
+    instance.hooks = {
+        context = function (cb, opts)
+            cb('context', Message.concat(instance.context).content)
+        end
+    }
 
     return instance
+end
+
+---@param msg string | Message
+function ClientSession:add_context(msg)
+
+    if type(msg) == 'string' then
+        msg = Message.new{
+            content=msg,
+            role='user'
+        }
+    end
+
+    table.insert(self.context, msg)
 end
 
 --- Creates a new message history by merging the existing messages and the new messages.
@@ -31,11 +53,18 @@ function ClientSession:new_history(new_messages)
 
     for _, msg_container in ipairs({self.messages, new_messages}) do
         for _, msg in ipairs(msg_container) do
-            table.insert(history, Message:new(msg))
+            table.insert(history, Message.new(msg))
         end
     end
 
     return history
+end
+
+---@param prompt PromptTemplate
+function ClientSession:run_prompt(prompt)
+    prompt:subs(function(result)
+        ClientSession:generate_code(result)
+    end, self.hooks)
 end
 
 --- @param messages Message[]
@@ -47,7 +76,6 @@ function ClientSession:generate_code(messages, opts)
     local session_messages = self:new_history(messages)
 
     local message = self.llmclient:create_chat_completion(session_messages)
-    vim.print(message)
     local code_list = message:extract_code_blocks()
 
     local code = Message.concat(code_list)
