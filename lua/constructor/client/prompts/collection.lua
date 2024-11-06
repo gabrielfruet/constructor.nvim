@@ -47,11 +47,20 @@ M.generate_docstring = PromptTemplate.new{
 }
 
 M.write_function_based_on_context = PromptTemplate.new{
-    name = 'Write functino based on context',
+    name = 'Write function based on context',
     template = [[You're a {bfiletype} Software Engineer that excels at writing good code. 
         Based on the provided and context, write a function that attends to the user demand.
 
         {context}
+
+        When writing a function, you:
+        - Handle edge cases and throw errors
+        - Write readable code
+        - Avoid nested code
+        - Avoid unecessary comments 
+        - Try to use the standard library from the language instead of rewriting
+        - Write only the demanded function
+        - Type hint the function
 
         {input}
         ]],
