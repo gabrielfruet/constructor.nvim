@@ -65,7 +65,7 @@ end
 ---@async
 function ClientSession:run_prompt(prompt, on_done)
     prompt:subs(function(result)
-        local message = ClientSession:generate_code(result)
+        local message = self:generate_code({result})
         on_done(message)
     end, self.hooks)
 end
