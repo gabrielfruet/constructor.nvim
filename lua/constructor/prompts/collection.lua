@@ -1,6 +1,6 @@
 ---@type table<string, PromptTemplate>
 local M = {}
-local PromptTemplate = require('constructor.client.prompts.template')
+local PromptTemplate = require('constructor.prompts.template')
 
 local function on_non_empty(formatstr)
     return function (cb)

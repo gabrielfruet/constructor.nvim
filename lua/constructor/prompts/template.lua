@@ -7,8 +7,8 @@
 local PromptTemplate = {}
 PromptTemplate.__index = PromptTemplate
 
-local strmanip = require('constructor.client.prompts.strmanip')
-local default_hooks = require('constructor.client.prompts.hooks.init')
+local strmanip = require('constructor.prompts.strmanip')
+local default_hooks = require('constructor.prompts.hooks.init')
 local Message = require('constructor.client.messages')
 
 

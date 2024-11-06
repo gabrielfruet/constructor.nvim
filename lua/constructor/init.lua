@@ -7,7 +7,7 @@ local bufops = require('constructor.bufops')
 local ClientSession = require('constructor.client.client')
 local Groq = require('constructor.client.backends.groq')
 
-local PromptCollection = require('constructor.client.prompts.collection')
+local PromptCollection = require('constructor.prompts.collection')
 
 
 function M.setup(opts)
