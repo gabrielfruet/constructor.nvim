@@ -8,7 +8,7 @@ local ClientSession = require('constructor.client.client')
 local ClientManager = require('constructor.client.manager')
 local Groq = require('constructor.client.backends.groq')
 
-local PromptCollection = require('constructor.prompts.collection')
+local RoutineCollection = require('constructor.routines.collection')
 
 
 function M.setup(opts)
@@ -19,7 +19,7 @@ function M.setup(opts)
 
     local function select_prompt()
         local items = {}
-        for _, v in pairs(PromptCollection) do
+        for _, v in pairs(RoutineCollection) do
             table.insert(items, v)
         end
 

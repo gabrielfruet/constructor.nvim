@@ -1,6 +1,6 @@
----@type table<string, PromptTemplate>
+---@type table<string, RoutineTemplate>
 local M = {}
-local PromptTemplate = require('constructor.prompts.template')
+local RoutineTemplate = require'constructor.routines.template'
 
 local function on_non_empty(formatstr)
     return function (cb)
@@ -14,7 +14,7 @@ local function on_non_empty(formatstr)
     end
 end
 
-M.write_tests = PromptTemplate.new{
+table.insert(M, RoutineTemplate.new{
     name = 'Write tests',
     description = 'Write tests for the selected function',
     template = [[You're a skilled {bfiletype} software engineer specialized in testing and quality assurance.
@@ -30,9 +30,9 @@ M.write_tests = PromptTemplate.new{
     hook_wrappers = {
        input = on_non_empty("- Performance scenarios for %s (e.g., handling large datasets, high-frequency calls)")
     }
-}
+})
 
-M.generate_docstring = PromptTemplate.new{
+table.insert(M, RoutineTemplate.new{
     name = 'Generate docstring',
     description = 'Generate the docstring for the next function',
     template = [[Document the next piece of code, using the {bfiletype} docstring format,
@@ -44,9 +44,9 @@ M.generate_docstring = PromptTemplate.new{
         - Try to infer the types as maximum as you can.
 
         Code:{selection}]]
-}
+})
 
-M.write_function_based_on_context = PromptTemplate.new{
+table.insert(M, RoutineTemplate.new{
     name = 'Write function based on context',
     template = [[You're a {bfiletype} Software Engineer that excels at writing readable code. 
         Based on the provided context, write a function that attends to the user demand.
@@ -68,6 +68,6 @@ M.write_function_based_on_context = PromptTemplate.new{
         context = on_non_empty("Context: \n %s"),
         input = on_non_empty("Demand: \n %s")
     }
-}
+})
 
 return M

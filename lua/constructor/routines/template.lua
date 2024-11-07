@@ -1,14 +1,13 @@
-
---- @class PromptTemplate
+--- @class RoutineTemplate
 --- @field template string
 --- @field name string
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
-local PromptTemplate = {}
-PromptTemplate.__index = PromptTemplate
+local RoutineTemplate = {}
+RoutineTemplate.__index = RoutineTemplate
 
-local strmanip = require('constructor.prompts.strmanip')
-local default_hooks = require('constructor.prompts.hooks.init')
+local strmanip = require('constructor.routines.strmanip')
+local default_hooks = require('constructor.routines.hooks.init')
 local Message = require('constructor.client.messages')
 
 
@@ -21,8 +20,8 @@ local Message = require('constructor.client.messages')
 ---                 The description of the template
 ---             hook_wrapper: table<string, HookWrapper> | nil
 ---                 Wrappers around predefined hooks
----@return PromptTemplate instance
-function PromptTemplate.new(tbl)
+---@return RoutineTemplate instance
+function RoutineTemplate.new(tbl)
     if tbl.template == nil then
         error('Template is required')
     end
@@ -31,7 +30,7 @@ function PromptTemplate.new(tbl)
         error('Name is required')
     end
 
-    local instance = setmetatable({}, PromptTemplate)
+    local instance = setmetatable({}, RoutineTemplate)
 
     instance.template = tbl.template
     instance.name = tbl.name or ''
@@ -52,7 +51,7 @@ end
 ---@async
 ---@param on_done fun(result: Message)
 ---@param hooks table<string, fun(cb:function, opts: table|nil)> | nil
-function PromptTemplate:subs(on_done, hooks)
+function RoutineTemplate:subs(on_done, hooks)
     hooks = hooks or {}
     local required_vars = strmanip.extract_fstring_vars(self.template)
 
@@ -97,4 +96,4 @@ function PromptTemplate:subs(on_done, hooks)
     end
 end
 
-return PromptTemplate
+return RoutineTemplate

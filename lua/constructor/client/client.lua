@@ -67,7 +67,7 @@ function ClientSession:new_history(new_messages)
     return history
 end
 
----@param prompt PromptTemplate
+---@param prompt RoutineTemplate
 ---@param on_done fun(result: Message)
 ---@async
 function ClientSession:run_prompt(prompt, on_done)
