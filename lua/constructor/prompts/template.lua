@@ -71,13 +71,13 @@ function PromptTemplate:subs(on_done, hooks)
     local function callback_on_variable(variable)
         ---@param value string | nil if the value is nil, it will be considered an error
         return function (value)
-            if value ~= nil then
-                result = strmanip.substitute_fstring_var(result, variable, value)
+            if value == nil then return end
 
-                semaphore = semaphore - 1
-                if semaphore == 0 then
-                    on_done_cb()
-                end
+            result = strmanip.substitute_fstring_var(result, variable, value)
+
+            semaphore = semaphore - 1
+            if semaphore == 0 then
+                on_done_cb()
             end
         end
     end

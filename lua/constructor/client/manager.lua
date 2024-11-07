@@ -26,12 +26,13 @@ end
 --- If the current was nil, set it to client
 function ClientManager:add_client(client)
     table.insert(self.clients, client)
+
     if self.current == nil then
         self.current = client
     end
 end
 
----@return ClientSession current
+---@return ClientSession | nil current
 function ClientManager:curr()
     return self.current
 end
@@ -62,6 +63,8 @@ function ClientManager:set_current(new_current)
     self.current = new_current
 end
 
+---@async
+--- Uses vim.ui.select API to change the current client
 function ClientManager:select()
     vim.ui.select(self.clients, {
         prompt='Select the client you want to use',
@@ -69,9 +72,8 @@ function ClientManager:select()
             return item.name
         end
     }, function (new_client)
-        if new_client ~= nil then
-            self.current = new_client
-        end
+        if new_client == nil then return end
+        self.current = new_client
     end)
 end
 

@@ -5,13 +5,17 @@ local M = {
 local bufops = require('constructor.bufops')
 
 local ClientSession = require('constructor.client.client')
+local ClientManager = require('constructor.client.manager')
 local Groq = require('constructor.client.backends.groq')
 
 local PromptCollection = require('constructor.prompts.collection')
 
 
 function M.setup(opts)
-    local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), 'main client')
+    local client_manager = ClientManager.new()
+    client_manager:add_client(
+        ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), 'Default client')
+    )
 
     local function select_prompt()
         local items = {}
@@ -24,20 +28,47 @@ function M.setup(opts)
                 return item.name
             end
         }, function (prompt, idx)
-            client:run_prompt(prompt, function (msg)
-                bufops.insert_at_cursor(msg.content)
+                local client = client_manager:curr()
+
+                if client == nil then return end
+
+                client:run_prompt(prompt, function (msg)
+                    bufops.insert_at_cursor(msg.content)
+                end)
             end)
-        end)
     end
 
     vim.api.nvim_create_user_command('ClientSendContext', function ()
+        local client = client_manager:curr()
+
+        if client == nil then return end
+
         local selected = table.concat(bufops.get_selection(), '\n')
         client:add_context(selected)
+    end, {})
+
+    vim.api.nvim_create_user_command('NewClient', function ()
+        vim.ui.input({ prompt = [[What's the name of the new client?]] }, function (input)
+            if input == nil then return end
+
+            local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), input)
+
+            client_manager:add_client(client)
+            client_manager:set_current(client)
+        end)
+    end, {})
+
+    vim.api.nvim_create_user_command('SelectClient', function ()
+        client_manager:select()
     end, {})
 
     vim.api.nvim_create_user_command('ClientGenerate', select_prompt, {})
 
     vim.api.nvim_create_user_command('ClientGetContext', function ()
+        local client = client_manager:curr()
+
+        if client == nil then return end
+
         vim.print(client.context)
     end, {})
 end
