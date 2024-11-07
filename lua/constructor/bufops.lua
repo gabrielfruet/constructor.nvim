@@ -118,7 +118,7 @@ end
 function M.generate_and_replace()
     local selected_text = table.concat(M.get_selection(), '\n')
 
-    local client = ClientSession.new(GroqClient.new(os.getenv('GROQ_API_KEY')))
+    local client = ClientSession.new(GroqClient.new(os.getenv('GROQ_API_KEY')), 'generate and replace client')
     local code = client:generate_code({
         {
             content = string.format([[

@@ -11,7 +11,7 @@ local PromptCollection = require('constructor.prompts.collection')
 
 
 function M.setup(opts)
-    local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')))
+    local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), 'main client')
 
     local function select_prompt()
         local items = {}

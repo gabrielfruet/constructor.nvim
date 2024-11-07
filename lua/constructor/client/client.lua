@@ -5,14 +5,16 @@ local Message = require('constructor.client.messages')
 --- @field llmclient LLMClient
 --- @field context string[]
 --- @field hooks table<string, Hook>
+--- @field name string
 local ClientSession = {}
 ClientSession.__index = ClientSession
 
 --- Creates a new ClientSession instance.
 --- @param llmclient LLMClient: The LLM client to associate with this session.
+--- @param name string: the name of the client
 --- @return ClientSession: A new ClientSession instance.
 --- @error If llmclient is nil.
-function ClientSession.new(llmclient)
+function ClientSession.new(llmclient, name)
     if llmclient == nil then
         error("llmclient is required")
     end
@@ -21,6 +23,7 @@ function ClientSession.new(llmclient)
     instance.llmclient = llmclient
     instance.messages = {}
     instance.context = {}
+    instance.name = name
 
     instance.hooks = {
         context = function (cb, opts)
