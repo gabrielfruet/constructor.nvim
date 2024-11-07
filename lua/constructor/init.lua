@@ -7,10 +7,20 @@ local bufops = require('constructor.bufops')
 local ClientSession = require('constructor.client.client')
 local ClientManager = require('constructor.client.manager')
 local Groq = require('constructor.client.backends.groq')
-
 local RoutineCollection = require('constructor.routines.collection')
 
 
+--- Example opts
+--- opts = {
+---     backends = {
+---         groq = {
+---             api=os.getenv(GROQ_API_KEY)
+---         }
+---     }
+---     routine_templates = {
+---         
+---     }
+--- }
 function M.setup(opts)
     local client_manager = ClientManager.new()
     client_manager:add_client(
@@ -32,9 +42,10 @@ function M.setup(opts)
 
                 if client == nil then return end
 
-                client:run_prompt(prompt, function (msg)
-                    bufops.insert_at_cursor(msg.content)
-                end)
+                client:run_routine(prompt,
+                    function (msg)
+                        bufops.insert_at_cursor(msg.content)
+                    end)
             end)
     end
 
@@ -45,6 +56,22 @@ function M.setup(opts)
 
         local selected = table.concat(bufops.get_selection(), '\n')
         client:add_context(selected)
+    end, {})
+
+    vim.api.nvim_create_user_command('ClientClearContext', function ()
+        local client = client_manager:curr()
+
+        if client == nil then return end
+
+        client:clear_context()
+    end, {})
+
+    vim.api.nvim_create_user_command('ClientClearHistory', function ()
+        local client = client_manager:curr()
+
+        if client == nil then return end
+
+        client:clear_history()
     end, {})
 
     vim.api.nvim_create_user_command('NewClient', function ()

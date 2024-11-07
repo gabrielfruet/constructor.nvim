@@ -3,12 +3,15 @@
 --- @field name string
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
+--- @field kind RoutineKind
 local RoutineTemplate = {}
 RoutineTemplate.__index = RoutineTemplate
 
 local strmanip = require('constructor.routines.strmanip')
 local default_hooks = require('constructor.routines.hooks.init')
 local Message = require('constructor.client.messages')
+local RoutineKind = require('constructor.routines.kinds')
+local Routine = require('constructor.routines.routine')
 
 
 ---@param tbl table<string,any> table should be on the next format:
@@ -20,6 +23,8 @@ local Message = require('constructor.client.messages')
 ---                 The description of the template
 ---             hook_wrapper: table<string, HookWrapper> | nil
 ---                 Wrappers around predefined hooks
+---             kind: RountineKind
+---                 Define the kind of output expected for the routine
 ---@return RoutineTemplate instance
 function RoutineTemplate.new(tbl)
     if tbl.template == nil then
@@ -37,8 +42,8 @@ function RoutineTemplate.new(tbl)
     instance.description = tbl.description or ''
     instance.hook_wrappers = tbl.hook_wrappers or {}
     instance.hook_wrappers._noop = function(cb) return cb end
+    instance.kind = tbl.kind or RoutineKind.kinds.CODE
 
-    --#TODO error prone
     setmetatable(instance.hook_wrappers, {
         __index = function(_, _)
             return instance.hook_wrappers._noop
@@ -48,21 +53,40 @@ function RoutineTemplate.new(tbl)
     return instance
 end
 
+---@return table
+local function tbl_shallow_copy(tbl, except)
+    local copy = {}
+    local dont_copy = {}
+
+    for _,v in pairs(except) do
+        dont_copy[v] = true
+    end
+
+    for k,v in pairs(tbl) do
+        if dont_copy[k] then goto continue end
+
+        copy[k] = v
+        ::continue::
+    end
+
+    return copy
+end
+
 ---@async
----@param on_done fun(result: Message)
+---@param on_done fun(result: Routine)
 ---@param hooks table<string, fun(cb:function, opts: table|nil)> | nil
 function RoutineTemplate:subs(on_done, hooks)
     hooks = hooks or {}
     local required_vars = strmanip.extract_fstring_vars(self.template)
 
-    local result = self.template
+    local prompt = self.template
     local semaphore = #required_vars
 
     local function on_done_cb()
-        on_done(Message.new{
-            content = result,
-            role = 'user',
-        })
+        local routine = tbl_shallow_copy(self, {'template'})
+        routine.prompt = prompt
+
+        on_done(Routine.new(routine))
     end
 
     ---@param variable string
@@ -72,7 +96,7 @@ function RoutineTemplate:subs(on_done, hooks)
         return function (value)
             if value == nil then return end
 
-            result = strmanip.substitute_fstring_var(result, variable, value)
+            prompt = strmanip.substitute_fstring_var(prompt, variable, value)
 
             semaphore = semaphore - 1
             if semaphore == 0 then
