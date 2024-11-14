@@ -3,7 +3,7 @@
 --- @field name string
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
---- @field kind RoutineMessageKind
+--- @field kind RoutineMessageKinds
 --- @field output RoutineOutput
 local RoutineTemplate = {}
 RoutineTemplate.__index = RoutineTemplate
@@ -44,7 +44,7 @@ function RoutineTemplate.new(tbl)
     instance.description = tbl.description or ''
     instance.hook_wrappers = tbl.hook_wrappers or {}
     instance.hook_wrappers._noop = function(cb) return cb end
-    instance.kind = tbl.kind or RoutineMessageKind.kinds.CODE
+    instance.kind = tbl.kind or RoutineMessageKind.code
     local output
     if type(tbl.output) == 'string' then
         output = RoutineOutputs[tbl.output]
