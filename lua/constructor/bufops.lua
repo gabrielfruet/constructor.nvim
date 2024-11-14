@@ -17,10 +17,13 @@ function M.insert_lines(text, row)
 
     -- Insert new lines
     vim.api.nvim_buf_set_lines(0, row, end_line, false, {})
-    vim.api.nvim_buf_set_lines(0, row, row, false, text)
+    vim.api.nvim_buf_set_lines(0, row, row, true, text)
+    vim.print(text)
 
     -- Append the previous lines after the inserted text
-    vim.api.nvim_buf_set_lines(0, row + #text, row + #text, false, lines_after)
+    if #lines_after > 0 then
+        vim.api.nvim_buf_set_lines(0, row + #text, row + #text, false, lines_after)
+    end
 end
 
 ---@param text string
@@ -58,6 +61,14 @@ function M.get_selection()
     local fcol = nth_line_len(start_row)
     local lcol = nth_line_len(end_row)
 
+    local line_count = vim.api.nvim_buf_line_count(0)
+
+    if line_count == end_row then
+        end_row = -1
+    end
+
+    lcol = -1
+
     local lines
 
     if start_row == end_row then
@@ -65,7 +76,7 @@ function M.get_selection()
     else
         lines = tblutils.join_lists{
             vim.api.nvim_buf_get_text(0, start_row-1, start_col-1, start_row-1, -1, {}),
-            vim.api.nvim_buf_get_text(0, start_row, 0, end_row-1, lcol, {})
+            vim.api.nvim_buf_get_text(0, start_row, 0, end_row, lcol, {})
         }
     end
 
@@ -109,10 +120,39 @@ function M.replace_visual_selection(text)
 
         vim.api.nvim_buf_set_text(0, start_row-1, start_col-1, start_row-1, -1, {lines[1]})
         table.remove(lines, 1)
-        --vim.api.nvim_buf_set_lines(0, start_row, end_row-1, false, lines)
         M.insert_lines(lines, start_row)
-        --vim.api.nvim_buf_set_text(0, start_row, 0, end_row-1, -1, lines)
     end
+end
+
+local function first_to_upper(str)
+    return (str:gsub("^%l", string.upper))
+end
+
+
+---@param message Message
+function M.write_message_to_end_of_buffer(bufnr, message)
+    local Message = require('constructor.client.messages')
+
+    message = message or Message.new{content='testing', role='user'}
+    local nlines = vim.api.nvim_buf_line_count(bufnr)
+    M.insert_lines(first_to_upper(message.role) .. ':\n', nlines)
+    M.insert_lines(message.content, nlines+1)
+end
+
+_G.wmteob = M.write_message_to_end_of_buffer
+_G.wmmteob = function ()
+    local client_manager = require('constructor.client.manager'):new()
+
+    local client = client_manager:curr()
+    if client == nil then
+        print('No client selected')
+        return
+    end
+
+    for _, msg in ipairs(client.messages) do
+        M.write_message_to_end_of_buffer(0, msg)
+    end
+
 end
 
 function M.generate_and_replace()

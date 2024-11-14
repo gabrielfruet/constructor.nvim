@@ -111,6 +111,11 @@ function ClientSession:run_routine(routine_template, on_done)
             local kind = routine.kind
 
             local generated_msg = self:generate_kind({prompt}, kind)
+            table.insert(self.messages, prompt)
+            table.insert(self.messages, generated_msg)
+
+            routine.output(generated_msg)
+
             on_done(generated_msg)
         end
         ,self.hooks)
@@ -124,8 +129,6 @@ function ClientSession:generate_code(messages, opts)
     local code_list = message:extract_code_blocks()
 
     local code = Message.concat(code_list)
-
-    table.insert(self.messages, code)
 
     return code
 end

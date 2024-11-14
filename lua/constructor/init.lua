@@ -44,7 +44,7 @@ function M.setup(opts)
 
                 client:run_routine(prompt,
                     function (msg)
-                        bufops.insert_at_cursor(msg.content)
+                        vim.print('done generating')
                     end)
             end)
     end

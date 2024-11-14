@@ -4,12 +4,14 @@
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
 --- @field kind RoutineKind
+--- @field output RoutineOutput
 local RoutineTemplate = {}
 RoutineTemplate.__index = RoutineTemplate
 
 local strmanip = require('constructor.routines.strmanip')
 local default_hooks = require('constructor.routines.hooks.init')
 local Message = require('constructor.client.messages')
+local RoutineOutputs = require('constructor.routines.output')
 local RoutineKind = require('constructor.routines.kinds')
 local Routine = require('constructor.routines.routine')
 
@@ -43,6 +45,14 @@ function RoutineTemplate.new(tbl)
     instance.hook_wrappers = tbl.hook_wrappers or {}
     instance.hook_wrappers._noop = function(cb) return cb end
     instance.kind = tbl.kind or RoutineKind.kinds.CODE
+    local output
+    if type(tbl.output) == 'string' then
+        output = RoutineOutputs[tbl.output]
+    else
+        output = tbl.output
+    end
+    vim.print(output)
+    instance.output = output or RoutineOutputs.append_text
 
     setmetatable(instance.hook_wrappers, {
         __index = function(_, _)

@@ -4,10 +4,12 @@
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
 --- @field kind RoutineKinds
+--- @field output RoutineOutput
 local Routine = {}
 Routine.__index = Routine
 
 local RoutineKind = require('constructor.routines.kinds')
+local RoutineOutputs = require('constructor.routines.output')
 local Messages = require('constructor.client.messages')
 
 ---@param tbl table<string,any> table should be on the next format:
@@ -39,6 +41,7 @@ function Routine.new(tbl)
     instance.hook_wrappers = tbl.hook_wrappers or {}
     instance.hook_wrappers._noop = function(cb) return cb end
     instance.kind = tbl.kind or RoutineKind.kinds.CODE
+    instance.output = tbl.output or RoutineOutputs.append_text
 
     --#TODO error prone
     setmetatable(instance.hook_wrappers, {
@@ -53,7 +56,6 @@ end
 ---@param role string
 ---@return Message prompt
 function Routine:message(role)
-    vim.print('got here')
     role = role or 'user'
     return Messages.new{
         content=self.prompt,
