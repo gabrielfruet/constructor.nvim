@@ -86,8 +86,8 @@ When writing a function, you:
 - Try to use the standard library from the language instead of rewriting
 - Write only the demanded function
 - Type hint the function
-- The code should be surrounded by backticks
 - When possible, use early returns
+- The code should be surrounded by backticks
 
 Demand:
 {input}]],
@@ -115,6 +115,26 @@ Rules and constraints:
     hook_wrappers = {
         input = ensure_non_empty()
     }
+})
+
+table.insert(RoutineCollection, RoutineTemplate.new{
+    name = 'Type hint',
+    kind = RoutineMessageKinds.code,
+    output = RoutineOutput.replace_text,
+    template = [[
+You're a {bfiletype} Software Engineer that excels at inferring the data types
+of code. 
+
+When type hinting the code, you should:
+
+- Try to infer the most specific type
+- Type variables and parameters
+- You should rewrite the whole function without changing functionalities, 
+only adding type hints
+- The output code should be surrounded by backticks
+
+The code:
+{selection}]],
 })
 
 return RoutineCollection
