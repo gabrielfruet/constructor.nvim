@@ -1,7 +1,7 @@
 ---@type RoutineTemplate[]
 local RoutineCollection = {}
 local RoutineTemplate = require'constructor.routines.template'
-local RoutineKind = require'constructor.routines.kinds'
+local RoutineMessageKinds = require'constructor.routines.kinds'
 local RoutineOutput = require'constructor.routines.output'
 
 local function on_non_empty(formatstr)
@@ -31,7 +31,7 @@ end
 table.insert(RoutineCollection, RoutineTemplate.new{
     name = 'Write tests',
     description = 'Write tests for the selected function',
-    kind = RoutineKind.kinds.CODE,
+    kind = RoutineMessageKinds.code,
     output=RoutineOutput.append_text,
     template = [[
 You're a skilled {bfiletype} software engineer specialized in testing and quality assurance.
@@ -54,7 +54,7 @@ Provide clear test names and use assertions to validate the expected outcomes.]]
 table.insert(RoutineCollection, RoutineTemplate.new{
     name = 'Generate docstring',
     description = 'Generate the docstring for the next function',
-    kind = RoutineKind.kinds.CODE,
+    kind = RoutineMessageKinds.code,
     output = RoutineOutput.replace_text,
     template = [[
 Document the next piece of code, using the {bfiletype} docstring format,
@@ -71,7 +71,7 @@ Code:{selection}]]
 
 table.insert(RoutineCollection, RoutineTemplate.new{
     name = 'Write function based on context',
-    kind = RoutineKind.kinds.CODE,
+    kind = RoutineMessageKinds.code,
     output = RoutineOutput.append_text,
     template = [[
 You're a {bfiletype} Software Engineer that excels at writing readable code. 
@@ -99,7 +99,7 @@ Demand:
 
 table.insert(RoutineCollection, RoutineTemplate.new{
     name = 'Write regex',
-    kind = RoutineKind.kinds.CODE,
+    kind = RoutineMessageKinds.code,
     output = RoutineOutput.append_text,
     template = [[
 You're a {bfiletype} regex Software Engineer that excels at writting good regexes. 

@@ -10,13 +10,6 @@ local Message = require('constructor.client.messages')
 local ClientSession = {}
 ClientSession.__index = ClientSession
 
-local RoutineKind = require('constructor.routines.kinds')
-
-ClientSession._kind_to_method_tbl = {
-    [RoutineKind.kinds.CODE] = 'generate_code',
-    [RoutineKind.kinds.TEXT] = 'generate_text',
-}
-
 --- Creates a new ClientSession instance.
 --- @param llmclient LLMClient: The LLM client to associate with this session.
 --- @param name string: the name of the client
@@ -48,15 +41,16 @@ function ClientSession.new(llmclient, name, opts)
 end
 
 --- @param messages Message[]
---- @param kind RoutineKinds
+--- @param kind RoutineMessageKind
 --- @param opts table|nil
 --- @return Message
-function ClientSession:generate_kind(messages, kind, opts)
+function ClientSession:generate(messages, kind, opts)
     opts = opts or {}
-    kind = kind or RoutineKind.kinds.CODE
-    local method = ClientSession._kind_to_method_tbl[kind]
+    local session_messages = self:new_history(messages)
 
-    return self[method](self, messages, opts)
+    local message = self.llmclient:create_chat_completion(session_messages)
+
+    return kind(message)
 end
 
 
@@ -110,7 +104,8 @@ function ClientSession:run_routine(routine_template, on_done)
             local prompt = routine:message('user')
             local kind = routine.kind
 
-            local generated_msg = self:generate_kind({prompt}, kind)
+            local generated_msg = self:generate({prompt}, kind)
+
             table.insert(self.messages, prompt)
             table.insert(self.messages, generated_msg)
 
@@ -121,28 +116,4 @@ function ClientSession:run_routine(routine_template, on_done)
         ,self.hooks)
 end
 
---- @param messages Message[]
---- @param opts table|nil
---- @return Message
-function ClientSession:generate_code(messages, opts)
-    local message = self:generate_text(messages, opts)
-    local code_list = message:extract_code_blocks()
-
-    local code = Message.concat(code_list)
-
-    return code
-end
-
---- @param messages Message[]
---- @param opts table|nil
---- @return Message
-function ClientSession:generate_text(messages, opts)
-    opts = opts or {}
-
-    local session_messages = self:new_history(messages)
-
-    local message = self.llmclient:create_chat_completion(session_messages)
-
-    return message
-end
 return ClientSession

@@ -1,24 +1,18 @@
----@enum RoutineKinds
-local kinds = {
-    CODE = 0,
-    TEXT = 1
-}
+---@class RoutineMessageKinds
+local RoutineMessageKinds = {}
 
----@class RoutineKind
-local RoutineKind = {
-    kinds = kinds
-}
+---@alias RoutineMessageKind fun(msg: Message): Message
 
-function RoutineKind:__index(key)
-    return kinds[key]
+local Message = require'constructor.client.messages'
+
+---@param msg Message
+function RoutineMessageKinds.code(msg)
+    return Message.concat(msg:extract_code_blocks())
 end
 
----@param ... string
-function RoutineKind:__call(...)
-    ---@type string
-    local str = ...
-
-    return RoutineKind[str:upper()]
+---@param msg Message
+function RoutineMessageKinds.text(msg)
+    return msg
 end
 
-return RoutineKind
+return RoutineMessageKinds

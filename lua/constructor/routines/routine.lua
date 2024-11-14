@@ -3,12 +3,12 @@
 --- @field name string
 --- @field description string
 --- @field hook_wrappers table<string, HookWrapper>
---- @field kind RoutineKinds
+--- @field kind RoutineMessageKind
 --- @field output RoutineOutput
 local Routine = {}
 Routine.__index = Routine
 
-local RoutineKind = require('constructor.routines.kinds')
+local RoutineMessageKinds = require('constructor.routines.kinds')
 local RoutineOutputs = require('constructor.routines.output')
 local Messages = require('constructor.client.messages')
 
@@ -40,7 +40,7 @@ function Routine.new(tbl)
     instance.description = tbl.description or ''
     instance.hook_wrappers = tbl.hook_wrappers or {}
     instance.hook_wrappers._noop = function(cb) return cb end
-    instance.kind = tbl.kind or RoutineKind.kinds.CODE
+    instance.kind = tbl.kind or RoutineMessageKinds.code
     instance.output = tbl.output or RoutineOutputs.append_text
 
     --#TODO error prone
