@@ -65,8 +65,8 @@ function GroqClient.new(api_key)
     instance.api_key = api_key
     instance.base_url = "https://api.groq.com/openai/v1"
     --self.default_model = "llama-3.2-11b-text-preview"
-    --self.default_model = "mixtral-8x7b-32768"
-    instance.default_model = "llama-3.2-90b-text-preview"
+    instance.default_model = "mixtral-8x7b-32768"
+    -- instance.default_model = "llama-3.2-90b-text-preview"
     return instance
 end
 

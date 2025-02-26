@@ -137,4 +137,11 @@ The code:
 {selection}]],
 })
 
+table.insert(RoutineCollection, RoutineTemplate.new{
+    name = 'Generate text',
+    kind = RoutineMessageKinds.text,
+    output = RoutineOutput.append_text,
+    template = [[{input}]],
+})
+
 return RoutineCollection

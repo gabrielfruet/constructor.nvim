@@ -12,7 +12,6 @@ end
 
 ---@param msg Message
 function RoutineOutputs.replace_text(msg)
-    vim.print('got here')
     bufops.replace_visual_selection(msg.content)
 end
 

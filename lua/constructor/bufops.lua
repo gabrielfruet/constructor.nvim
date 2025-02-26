@@ -18,7 +18,6 @@ function M.insert_lines(text, row)
     -- Insert new lines
     vim.api.nvim_buf_set_lines(0, row, end_line, false, {})
     vim.api.nvim_buf_set_lines(0, row, row, true, text)
-    vim.print(text)
 
     -- Append the previous lines after the inserted text
     if #lines_after > 0 then

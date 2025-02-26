@@ -51,7 +51,6 @@ function RoutineTemplate.new(tbl)
     else
         output = tbl.output
     end
-    vim.print(output)
     instance.output = output or RoutineOutputs.append_text
 
     setmetatable(instance.hook_wrappers, {

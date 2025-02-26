@@ -44,7 +44,6 @@ function M.setup(opts)
 
                 client:run_routine(prompt,
                     function (msg)
-                        vim.print('done generating')
                     end)
             end)
     end
