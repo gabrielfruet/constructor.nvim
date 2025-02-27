@@ -43,14 +43,16 @@ end
 --- @param messages Message[]
 --- @param kind RoutineMessageKind
 --- @param opts table|nil
---- @return Message
-function ClientSession:generate(messages, kind, opts)
+--- @param on_done fun(msg: Message)
+function ClientSession:generate(messages, kind, opts, on_done)
     opts = opts or {}
     local session_messages = self:new_history(messages)
 
-    local message = self.llmclient:create_chat_completion(session_messages)
 
-    return kind(message)
+    self.llmclient:create_chat_completion(session_messages, {}, function(msg)
+        on_done(kind(msg))
+    end)
+
 end
 
 
@@ -104,14 +106,15 @@ function ClientSession:run_routine(routine_template, on_done)
             local prompt = routine:message('user')
             local kind = routine.kind
 
-            local generated_msg = self:generate({prompt}, kind)
+            self:generate({prompt}, kind, {}, function (generated_msg)
+                table.insert(self.messages, prompt)
+                table.insert(self.messages, generated_msg)
 
-            table.insert(self.messages, prompt)
-            table.insert(self.messages, generated_msg)
+                routine.output(generated_msg)
 
-            routine.output(generated_msg)
+                on_done(generated_msg)
+            end)
 
-            on_done(generated_msg)
         end
         ,self.hooks)
 end
