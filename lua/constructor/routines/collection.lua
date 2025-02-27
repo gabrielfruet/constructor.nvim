@@ -65,6 +65,7 @@ Document the next piece of code, using the {bfiletype} docstring format,
 - Try to explain the main functionality of the function, not tying to the underlying logic
 - Try to infer the types as maximum as you can.
 - The code should be surrounded by backticks
+- The output should contain the original source code too
 
 Code:{selection}]]
 })
@@ -135,6 +136,26 @@ only adding type hints
 
 The code:
 {selection}]],
+})
+
+table.insert(RoutineCollection, RoutineTemplate.new{
+    name = 'Add functionality',
+    kind = RoutineMessageKinds.code,
+    output = RoutineOutput.replace_text,
+    template = [[
+When writing the functionality, you should:
+- Avoid comments 
+- The code should be surrounded by backticks
+
+The code in language {bfiletype}:
+{selection}
+
+Demand:
+{input}]],
+    hook_wrappers = {
+        context = on_non_empty("Context: \n %s"),
+        input = ensure_non_empty()
+    }
 })
 
 table.insert(RoutineCollection, RoutineTemplate.new{
