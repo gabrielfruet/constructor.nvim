@@ -6,7 +6,8 @@ local bufops = require('constructor.bufops')
 
 local ClientSession = require('constructor.client.client')
 local ClientManager = require('constructor.client.manager')
-local Groq = require('constructor.client.backends.groq')
+local GroqClient = require('constructor.client.backends.groq')
+local OllamaClient = require('constructor.client.backends.ollama')
 local RoutineCollection = require('constructor.routines.collection')
 
 
@@ -24,7 +25,8 @@ local RoutineCollection = require('constructor.routines.collection')
 function M.setup(opts)
     local client_manager = ClientManager.new()
     client_manager:add_client(
-        ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), 'Default client')
+        -- ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), 'Default client')
+        ClientSession.new(OllamaClient.new('qwen2.5-coder:latest'), 'Default client')
     )
 
     local function select_prompt()
@@ -77,7 +79,7 @@ function M.setup(opts)
         vim.ui.input({ prompt = [[What's the name of the new client?]] }, function (input)
             if input == nil then return end
 
-            local client = ClientSession.new(Groq.new(os.getenv('GROQ_API_KEY')), input)
+            local client = ClientSession.new(GroqClient.new(os.getenv('GROQ_API_KEY')), input)
 
             client_manager:add_client(client)
             client_manager:set_current(client)
