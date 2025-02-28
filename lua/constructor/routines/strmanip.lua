@@ -1,5 +1,7 @@
 local M = {}
 
+---@param fstring string A formatted string containing variable placeholders in the form of {variable_name}
+---@return string[] vars An array of unique variable names extracted from the fstring
 function M.extract_fstring_vars(fstring)
     local vars = {}
     local seen = {}
@@ -13,6 +15,7 @@ function M.extract_fstring_vars(fstring)
 
     return vars
 end
+
 
 function M.substitute_fstring_var(fstring, variable, value)
     local pattern = string.format("{%s}", variable)

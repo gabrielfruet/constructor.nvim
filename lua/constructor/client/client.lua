@@ -1,4 +1,5 @@
 local Message = require('constructor.client.messages')
+local waitwin = require('constructor.waitwin')
 ---
 --- @class ClientSession
 --- @field messages Message[]
@@ -46,10 +47,11 @@ end
 --- @param on_done fun(msg: Message)
 function ClientSession:generate(messages, kind, opts, on_done)
     opts = opts or {}
-    local session_messages = self:new_history(messages)
+    local session_messages = self:new_history(messages, {previous=false})
 
-
+    local cancel = waitwin.create_wait_window()
     self.llmclient:create_chat_completion(session_messages, {}, function(msg)
+        cancel()
         on_done(kind(msg))
     end)
 
@@ -81,13 +83,16 @@ end
 --- 
 --- @param new_messages table of table containing message data
 --- @return table of Message objects, the new message history
-function ClientSession:new_history(new_messages)
+function ClientSession:new_history(new_messages, opts)
     local history = {}
+    local previous = opts.previous or false
 
     local n = #self.messages <= self.history_size and #self.messages or self.history_size
 
-    for i=n,1,-1 do
-        table.insert(history, self.messages[#self.messages - i + 1])
+    if previous then
+        for i=n,1,-1 do
+            table.insert(history, self.messages[#self.messages - i + 1])
+        end
     end
 
     for _, msg in ipairs(new_messages) do
@@ -101,8 +106,13 @@ end
 ---@param on_done fun(result: Message)
 ---@async
 function ClientSession:run_routine(routine_template, on_done)
+    if routine_template == nil then return end
+
     routine_template:subs(
         function (routine)
+            if routine == nil then
+                return
+            end
             local prompt = routine:message('user')
             local kind = routine.kind
 

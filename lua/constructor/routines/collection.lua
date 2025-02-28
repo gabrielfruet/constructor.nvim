@@ -67,7 +67,12 @@ Document the next piece of code, using the {bfiletype} docstring format,
 - The code should be surrounded by backticks
 - The output should contain the original source code too
 
-Code:{selection}]]
+{context}
+
+Code:{selection}]],
+    hook_wrappers = {
+        context=on_non_empty("Here's an example of a docstring:\n %s")
+    }
 })
 
 table.insert(RoutineCollection, RoutineTemplate.new{
@@ -139,21 +144,27 @@ The code:
 })
 
 table.insert(RoutineCollection, RoutineTemplate.new{
-    name = 'Add functionality',
+    name = 'Add functionality (using CoT)',
     kind = RoutineMessageKinds.code,
     output = RoutineOutput.replace_text,
     template = [[
+{context}
+
 When writing the functionality, you should:
 - Avoid comments 
 - The code should be surrounded by backticks
+- The only thing surrounded by backticks should be the code.
+- Provide only the modified version of the code that is provided after this.
 
-The code in language {bfiletype}:
+Provided code in language {bfiletype}:
 {selection}
 
+Think step by step on how you could implement, and outlies your chain of thought. 
+
 Demand:
-{input}]],
+{input}
+]],
     hook_wrappers = {
-        context = on_non_empty("Context: \n %s"),
         input = ensure_non_empty()
     }
 })
