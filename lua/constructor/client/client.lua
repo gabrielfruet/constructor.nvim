@@ -103,7 +103,7 @@ function ClientSession:new_history(new_messages, opts)
 end
 
 ---@param routine_template RoutineTemplate
----@param on_done fun(result: Message)
+---@param on_done fun(result: Message | nil)
 ---@async
 function ClientSession:run_routine(routine_template, on_done)
     if routine_template == nil then return end
@@ -117,6 +117,9 @@ function ClientSession:run_routine(routine_template, on_done)
             local kind = routine.kind
 
             self:generate({prompt}, kind, {}, function (generated_msg)
+                if generated_msg == nil then
+                    on_done(nil)
+                end
                 table.insert(self.messages, prompt)
                 table.insert(self.messages, generated_msg)
 

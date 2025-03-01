@@ -66,14 +66,17 @@ function OllamaClient:_make_request(method, endpoint, body, on_done)
     local function curl_cb(response_body, status_code)
         if status_code == nil then
             vim.print("HTTP request failed")
+            on_done(nil)
         end
         if status_code < 200 or status_code >= 300 then
-            error(string.format("HTTP request failed with status code %d: %s", status_code, response_body))
+            vim.print(string.format("HTTP request failed with status code %d: %s", status_code, response_body))
+            on_done(nil)
         end
 
         local ok, decoded = pcall(vim.fn.json_decode, response_body)
         if not ok then
-            error("Failed to decode JSON response: " .. decoded)
+            vim.print("Failed to decode JSON response: " .. decoded)
+            on_done(nil)
         end
         on_done(decoded)
     end
@@ -107,7 +110,8 @@ function OllamaClient:create_chat_completion(messages, options, on_done)
 
     local function handle_response(response)
         if response == nil or response.message == nil then
-            error('error when calling chat')
+            vim.print('error when calling chat')
+            on_done(nil)
         end
 
         local msgs = Message.new({

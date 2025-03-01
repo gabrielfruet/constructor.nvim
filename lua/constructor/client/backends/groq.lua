@@ -45,14 +45,14 @@ local function curl_request(url, method, headers, body, on_done)
     return job_id
 end
 -- Initialize the Groq client with API key
-function GroqClient.new(api_key)
+function GroqClient.new(api_key, model_name)
     if not api_key then
         error("API key is required")
     end
     local instance = setmetatable({}, GroqClient)
     instance.api_key = api_key
     instance.base_url = "https://api.groq.com/openai/v1"
-    instance.default_model = "mixtral-8x7b-32768"
+    instance.model_name = model_name or "mixtral-8x7b-32768"
     return instance
 end
 
@@ -70,15 +70,19 @@ function GroqClient:_make_request(method, endpoint, body, on_done)
     local function curl_cb(response_body, status_code)
         if status_code == nil then
             vim.print("HTTP request failed")
+            on_done(nil)
         end
         if status_code < 200 or status_code >= 300 then
-            error(string.format("HTTP request failed with status code %d: %s", status_code, response_body))
+            vim.print(string.format("HTTP request failed with status code %d: %s", status_code, response_body))
+            on_done(nil)
         end
 
         local ok, decoded = pcall(vim.fn.json_decode, response_body)
         if not ok then
-            error("Failed to decode JSON response: " .. decoded)
+            vim.print("Failed to decode JSON response: " .. decoded)
+            on_done(nil)
         end
+
         on_done(decoded)
     end
 
@@ -95,7 +99,7 @@ end
 -- Create a chat completion
 function GroqClient:create_chat_completion(messages, options, on_done)
     options = options or {}
-    local model = options.model or self.default_model
+    local model = options.model or self.model_name
     local temperature = options.temperature or 0.7
     local max_tokens = options.max_tokens or 1024
 
@@ -107,7 +111,8 @@ function GroqClient:create_chat_completion(messages, options, on_done)
     }
     local function handle_response(response)
         if response == nil or response.choices == nil then
-            error('error when calling chat')
+            vim.print('error when calling chat')
+            on_done(nil)
         end
 
         local msgs = Message.new({
@@ -123,7 +128,14 @@ function GroqClient:create_chat_completion(messages, options, on_done)
 end
 
 function GroqClient:list_models(on_done)
-    self:_make_request("GET", "/models", on_done)
+    local function handle_response(response)
+        local models = {}
+        for _,v in pairs(response.data) do
+            table.insert(models, v.id)
+        end
+        on_done(models)
+    end
+    self:_make_request("GET", "/models", nil, handle_response)
 end
 
 return GroqClient
