@@ -17,21 +17,19 @@ local function curl_request(url, method, headers, body, on_done)
     end
 
     local response_body = {}
-    local status_code = nil
 
     local job_id = vim.fn.jobstart(curl_cmd, {
         on_stdout = function(_, data, _)
             for _, line in ipairs(data) do
-                table.insert(response_body, line)
+                if line ~= '' then
+                    table.insert(response_body, line)
+                end
             end
         end,
         on_exit = function(_, exit_code, _)
             if exit_code == 0 then
-                local full_response = table.concat(response_body, '\n')
-
-                status_code = tonumber(full_response:match('(%d+)\n$'))
-
-                local extracted_body = full_response:gsub('(%d+)\n$', '')
+                local status_code = tonumber(table.remove(response_body))
+                local extracted_body = table.concat(response_body, '\n')
 
                 on_done(extracted_body, status_code)
             else
