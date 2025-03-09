@@ -1,7 +1,7 @@
 local Message = require('constructor.client.messages')
 
-local GroqClient = {}
-GroqClient.__index = GroqClient
+local OpenAIClient = {}
+OpenAIClient.__index = OpenAIClient
 
 local function curl_request(url, method, headers, body, on_stream, on_done)
     local curl_cmd = {'curl', '-s', '-N', '-w', '\n%{http_code}', '-X', method, url}
@@ -67,20 +67,20 @@ local function curl_request(url, method, headers, body, on_stream, on_done)
 end
 
 -- Initialize the Groq client with API key
-function GroqClient.new(api_key, model_name)
+function OpenAIClient.new(api_key, model_name, endpoint)
     if not api_key then
         error("API key is required")
     end
-    local instance = setmetatable({}, GroqClient)
+    local instance = setmetatable({}, OpenAIClient)
     instance.api_key = api_key
     -- instance.base_url = "https://api.groq.com/openai/v1"
-    instance.base_url = "http://localhost:11434/v1"
+    instance.base_url = endpoint or "http://localhost:11434/v1"
     -- instance.model_name = model_name or "mixtral-8x7b-32768"
     instance.model_name = model_name or "qwen2.5-coder:latest"
     return instance
 end
 
-function GroqClient:_make_request(method, endpoint, body, on_stream, on_done)
+function OpenAIClient:_make_request(method, endpoint, body, on_stream, on_done)
     local headers = {
         ["Authorization"] = "Bearer " .. self.api_key,
         ["Content-Type"] = "application/json"
@@ -115,7 +115,7 @@ function GroqClient:_make_request(method, endpoint, body, on_stream, on_done)
     )
 end
 
-function GroqClient:create_chat_completion(messages, options, on_stream, on_done)
+function OpenAIClient:create_chat_completion(messages, options, on_stream, on_done)
     options = options or {}
     local model = options.model or self.model_name
     local temperature = options.temperature or 0.7
@@ -157,7 +157,7 @@ function GroqClient:create_chat_completion(messages, options, on_stream, on_done
     self:_make_request("POST", "/chat/completions", request_body, on_stream_cb, on_done_cb)
 end
 
-function GroqClient:list_models(on_done)
+function OpenAIClient:list_models(on_done)
     local function handle_response(response)
         local models = {}
         for _,v in pairs(response.data) do
@@ -168,4 +168,4 @@ function GroqClient:list_models(on_done)
     self:_make_request("GET", "/models", nil, handle_response)
 end
 
-return GroqClient
+return OpenAIClient
