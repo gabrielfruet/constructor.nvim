@@ -115,7 +115,9 @@ function ClientSession:run_routine(routine_template, on_done)
     routine_template:subs(
         function (routine)
             local kind = routine.kind
-            local on_stream_routine, on_done_routine = routine.output(kind)
+            local output = routine.output(kind)
+            local on_stream_output = output.on_stream
+            local on_done_output = output.on_done
 
             if routine == nil then
                 return
@@ -125,11 +127,11 @@ function ClientSession:run_routine(routine_template, on_done)
                 table.insert(self.messages, prompt)
                 table.insert(self.messages, generated_msg)
 
-                on_stream_routine(generated_msg)
+                on_stream_output(generated_msg)
             end
 
             local function on_done_subs(success)
-                on_done_routine(success)
+                on_done_output(success)
                 on_done(success)
             end
 

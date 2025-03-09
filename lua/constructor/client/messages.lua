@@ -58,6 +58,14 @@ function Message:extract_code_blocks()
     return code_msg_list
 end
 
+--- @return Message
+function Message:remove_newline()
+    return Message.new{
+        content=self.content:gsub('\n', ' '),
+        role=self.role
+    }
+end
+
 Message.__concat = function(left, right)
     if getmetatable(left) == Message and getmetatable(right) == Message then
         return Message.new({

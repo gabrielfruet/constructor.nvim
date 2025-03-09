@@ -19,4 +19,11 @@ function RoutineMessageKinds.text(msg)
     return msg
 end
 
+---@param msg Message
+---@return Message|nil
+function RoutineMessageKinds.no_newline(msg)
+    if msg == nil then return nil end
+    return msg:remove_newline()
+end
+
 return RoutineMessageKinds
