@@ -12,11 +12,12 @@ Message.__index = Message
 function Message.concat(msg_list, opts)
     opts = opts or {}
     opts.sep = opts.sep or '\n'
+    opts.role = opts.role or 'user'
 
     if #msg_list == 0 then
         return Message.new{
             content='',
-            role='user'
+            role=opts.role
         }
     end
 

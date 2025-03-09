@@ -42,24 +42,21 @@ function ClientSession.new(llmclient, name, opts)
 end
 
 --- @param messages Message[]
---- @param kind RoutineMessageKind
 --- @param opts table|nil
 --- @param on_stream fun(msg: Message)
 --- @param on_done fun(success: boolean)
-function ClientSession:generate(messages, kind, opts, on_stream, on_done)
+function ClientSession:generate(messages, opts, on_stream, on_done)
     opts = opts or {}
     local session_messages = self:new_history(messages, {previous=false})
 
     local cancel = waitwin.create_wait_window()
     self.llmclient:create_chat_completion(session_messages, {},
         function (msg)
-            local kmsg = kind(msg)
-            if kmsg ~= nil then
-                on_stream(kmsg)
-            end
+            on_stream(msg)
         end,
         function (success)
             cancel()
+            on_done(success)
         end)
 
 end
@@ -117,21 +114,26 @@ function ClientSession:run_routine(routine_template, on_done)
 
     routine_template:subs(
         function (routine)
-            local on_stream_routine, on_done_routine = routine.output()
+            local kind = routine.kind
+            local on_stream_routine, on_done_routine = routine.output(kind)
 
             if routine == nil then
                 return
             end
             local prompt = routine:message('user')
-            local kind = routine.kind
-            local function on_stream(generated_msg)
+            local function on_stream_subs(generated_msg)
                 table.insert(self.messages, prompt)
                 table.insert(self.messages, generated_msg)
 
                 on_stream_routine(generated_msg)
             end
 
-            self:generate({prompt}, kind, {}, on_stream, on_done_routine)
+            local function on_done_subs(success)
+                on_done_routine(success)
+                on_done(success)
+            end
+
+            self:generate({prompt}, {}, on_stream_subs, on_done_subs)
 
         end
         ,self.hooks)

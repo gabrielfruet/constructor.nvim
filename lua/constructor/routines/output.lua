@@ -8,7 +8,8 @@ local Message = require('constructor.client.messages')
 ---@class RoutineOutputs
 local RoutineOutputs = {}
 
-function RoutineOutputs.append_text()
+---@param kind RoutineMessageKind
+function RoutineOutputs.append_text(kind)
     local streamed_msgs = {}
     ---@param msg Message
     local function on_stream(msg)
@@ -18,7 +19,10 @@ function RoutineOutputs.append_text()
     ---@param success boolean
     local function on_done(success)
         if success then
-            local msg = Message.concat(streamed_msgs)
+            local msg = kind(Message.concat(streamed_msgs, {sep="", role="Assistant"}))
+            if msg == nil then
+                return
+            end
             bufops.insert_at_cursor(msg.content)
         end
     end
@@ -26,7 +30,8 @@ function RoutineOutputs.append_text()
     return on_stream, on_done
 end
 
-function RoutineOutputs.replace_text()
+---@param kind RoutineMessageKind
+function RoutineOutputs.replace_text(kind)
     local streamed_msgs = {}
 
     ---@param msg Message
@@ -37,7 +42,10 @@ function RoutineOutputs.replace_text()
     ---@param success boolean
     local function on_done(success)
         if success then
-            local msg = Message.concat(streamed_msgs)
+            local msg = kind(Message.concat(streamed_msgs, {sep="", role="Assistant"}))
+            if msg == nil then
+                return
+            end
             bufops.replace_visual_selection(msg.content)
         end
     end

@@ -23,7 +23,6 @@ local function curl_request(url, method, headers, body, on_stream, on_done)
     local job_id = vim.fn.jobstart(curl_cmd, {
         on_stdout = function(_, data, _)
             for _, line in ipairs(data) do
-                vim.print('data:', data)
                 if line ~= '' then
                     local ok, num = pcall(tonumber, line)
                     if ok and type(num) == "number" then
@@ -56,17 +55,8 @@ local function curl_request(url, method, headers, body, on_stream, on_done)
         end,
         on_exit = function(_, exit_code, _)
             if exit_code == 0 then
-                -- Extract the status code from the last line
-
-                -- Remove the [DONE] marker if present
-                if response_body[#response_body] == '[DONE]' then
-                    table.remove(response_body)
-                end
-
-                -- Call on_done with the final response and status code
                 on_done(status_code)
             else
-                -- Handle non-zero exit codes
                 on_done(status_code, 'Curl command failed with exit code: ' .. exit_code)
             end
         end,
@@ -83,8 +73,10 @@ function GroqClient.new(api_key, model_name)
     end
     local instance = setmetatable({}, GroqClient)
     instance.api_key = api_key
-    instance.base_url = "https://api.groq.com/openai/v1"
-    instance.model_name = model_name or "mixtral-8x7b-32768"
+    -- instance.base_url = "https://api.groq.com/openai/v1"
+    instance.base_url = "http://localhost:11434/v1"
+    -- instance.model_name = model_name or "mixtral-8x7b-32768"
+    instance.model_name = model_name or "qwen2.5-coder:latest"
     return instance
 end
 
@@ -148,17 +140,18 @@ function GroqClient:create_chat_completion(messages, options, on_stream, on_done
     end
 
     local function on_stream_cb(body)
-        if type(body) == "number" then
+        local content = body.choices[1].delta.content
+
+        if content == nil then
             return
         end
-        for _, data in ipairs(body) do
-            vim.print('Body:', body)
-            local msg = Message.new({
-                content = data.choices[1].delta.content,
-                role = 'Assistant',
-            })
-            on_stream(msg)
-        end
+
+        local msg = Message.new({
+            content = content,
+            role = 'Assistant',
+        })
+
+        on_stream(msg)
     end
 
     self:_make_request("POST", "/chat/completions", request_body, on_stream_cb, on_done_cb)
