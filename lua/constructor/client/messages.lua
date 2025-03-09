@@ -3,6 +3,7 @@ local utils = require('constructor.client.utils')
 --- @class Message
 --- @field role string
 --- @field content string
+--- @field metadata table
 local Message = {}
 Message.__index = Message
 
@@ -11,11 +12,12 @@ Message.__index = Message
 function Message.concat(msg_list, opts)
     opts = opts or {}
     opts.sep = opts.sep or '\n'
+    opts.role = opts.role or 'user'
 
     if #msg_list == 0 then
         return Message.new{
             content='',
-            role='user'
+            role=opts.role
         }
     end
 
@@ -54,6 +56,14 @@ function Message:extract_code_blocks()
     end
 
     return code_msg_list
+end
+
+--- @return Message
+function Message:remove_newline()
+    return Message.new{
+        content=self.content:gsub('\n', ' '),
+        role=self.role
+    }
 end
 
 Message.__concat = function(left, right)

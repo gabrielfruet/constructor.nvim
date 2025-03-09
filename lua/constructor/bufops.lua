@@ -1,6 +1,6 @@
 local M = {}
 
-local GroqClient = require('constructor.client.backends.groq')
+local OpenAIClient = require('constructor.client.backends.openai')
 local ClientSession = require('constructor.client.client')
 local utils = require('constructor.client.utils')
 
@@ -157,7 +157,7 @@ end
 function M.generate_and_replace()
     local selected_text = table.concat(M.get_selection(), '\n')
 
-    local client = ClientSession.new(GroqClient.new(os.getenv('GROQ_API_KEY')), 'generate and replace client')
+    local client = ClientSession.new(OpenAIClient.new(os.getenv('GROQ_API_KEY')), 'generate and replace client')
     local code = client:generate_code({
         {
             content = string.format([[

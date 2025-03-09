@@ -42,18 +42,22 @@ function ClientSession.new(llmclient, name, opts)
 end
 
 --- @param messages Message[]
---- @param kind RoutineMessageKind
 --- @param opts table|nil
---- @param on_done fun(msg: Message)
-function ClientSession:generate(messages, kind, opts, on_done)
+--- @param on_stream fun(msg: Message)
+--- @param on_done fun(success: boolean)
+function ClientSession:generate(messages, opts, on_stream, on_done)
     opts = opts or {}
     local session_messages = self:new_history(messages, {previous=false})
 
     local cancel = waitwin.create_wait_window()
-    self.llmclient:create_chat_completion(session_messages, {}, function(msg)
-        cancel()
-        on_done(kind(msg))
-    end)
+    self.llmclient:create_chat_completion(session_messages, {},
+        function (msg)
+            on_stream(msg)
+        end,
+        function (success)
+            cancel()
+            on_done(success)
+        end)
 
 end
 
@@ -110,23 +114,28 @@ function ClientSession:run_routine(routine_template, on_done)
 
     routine_template:subs(
         function (routine)
+            local kind = routine.kind
+            local output = routine.output(kind)
+            local on_stream_output = output.on_stream
+            local on_done_output = output.on_done
+
             if routine == nil then
                 return
             end
             local prompt = routine:message('user')
-            local kind = routine.kind
-
-            self:generate({prompt}, kind, {}, function (generated_msg)
-                if generated_msg == nil then
-                    on_done(nil)
-                end
+            local function on_stream_subs(generated_msg)
                 table.insert(self.messages, prompt)
                 table.insert(self.messages, generated_msg)
 
-                routine.output(generated_msg)
+                on_stream_output(generated_msg)
+            end
 
-                on_done(generated_msg)
-            end)
+            local function on_done_subs(success)
+                on_done_output(success)
+                on_done(success)
+            end
+
+            self:generate({prompt}, {}, on_stream_subs, on_done_subs)
 
         end
         ,self.hooks)

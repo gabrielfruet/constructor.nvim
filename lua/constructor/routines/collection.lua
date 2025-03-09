@@ -176,4 +176,11 @@ table.insert(RoutineCollection, RoutineTemplate.new{
     template = [[{input}]],
 })
 
+table.insert(RoutineCollection, RoutineTemplate.new{
+    name = 'Explain function',
+    kind = RoutineMessageKinds.text,
+    output = RoutineOutput.streamed_window,
+    template = [[Explain step by step the provided function of {bfiletype} language. 
+{selection}]],
+})
 return RoutineCollection
