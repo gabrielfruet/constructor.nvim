@@ -181,8 +181,6 @@ table.insert(RoutineCollection, RoutineTemplate.new{
     kind = RoutineMessageKinds.text,
     output = RoutineOutput.streamed_window,
     template = [[Explain step by step the provided function of {bfiletype} language. 
-
-Your output should be in plain Markdown. Use markdown for improving visualization.
 {selection}]],
 })
 return RoutineCollection

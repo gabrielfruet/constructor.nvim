@@ -25,7 +25,7 @@ local RoutineCollection = require('constructor.routines.collection')
 function M.setup(opts)
     local client_manager = ClientManager.new()
     client_manager:add_client(
-        ClientSession.new(OpenAIClient.new(os.getenv('GROQ_API_KEY')), 'Default client')
+        ClientSession.new(OpenAIClient.new(os.getenv('GROQ_API_KEY'), 'deepseek-r1:8b'), 'Default client')
         -- ClientSession.new(OllamaClient.new('qwen2.5-coder:latest'), 'Default client')
     )
 
