@@ -3,6 +3,7 @@ local utils = require('constructor.client.utils')
 --- @class Message
 --- @field role string
 --- @field content string
+--- @field metadata table
 local Message = {}
 Message.__index = Message
 
